@@ -5,58 +5,38 @@ import Svg, { Circle, Line } from 'react-native-svg';
 const { width } = Dimensions.get('window');
 const SIZE = width * 0.8;
 const CENTER = SIZE / 2;
-const BALL_RADIUS = 15;
-const CIRCLE_RADIUS = [SIZE * 0.2, SIZE * 0.4, SIZE * 0.6];
+const MAX_OFFSET = SIZE * 0.4; // Zwiększamy maksymalne przesunięcie
 
 const AccelerometerVisualization = ({ x, y }) => {
-    // Normalizacja wartości do zakresu -1 do 1 z większą czułością
-    const normalizedX = Math.max(-1, Math.min(1, x / 1));
-    const normalizedY = Math.max(-1, Math.min(1, y / 1));
+    // Logujemy otrzymane wartości
+    console.log('AccelerometerVisualization - otrzymane wartości:', { x, y });
 
-    // Obliczenie pozycji piłki z większym zakresem ruchu
-    const ballX = CENTER + normalizedX * (CENTER * 0.8);
-    const ballY = CENTER + normalizedY * (CENTER * 0.8);
+    // Przeskalowujemy wartości do zakresu -MAX_OFFSET do MAX_OFFSET
+    const scaledX = x * MAX_OFFSET;
+    const scaledY = y * MAX_OFFSET;
 
-    console.log('Wizualizacja - x:', x, 'y:', y);
-    console.log('Znormalizowane - x:', normalizedX, 'y:', normalizedY);
-    console.log('Pozycja piłki - x:', ballX, 'y:', ballY);
+    console.log('AccelerometerVisualization - przeskalowane wartości:', { scaledX, scaledY });
 
     return (
         <View style={styles.container}>
             <Svg width={SIZE} height={SIZE}>
-                {/* Koncentryczne okręgi */}
+                {/* Tło - pomocniczy krąg */}
                 <Circle
                     cx={CENTER}
                     cy={CENTER}
-                    r={CIRCLE_RADIUS[0]}
-                    stroke="green"
-                    strokeWidth="2"
+                    r={MAX_OFFSET}
                     fill="none"
-                />
-                <Circle
-                    cx={CENTER}
-                    cy={CENTER}
-                    r={CIRCLE_RADIUS[1]}
-                    stroke="yellow"
+                    stroke="#ddd"
                     strokeWidth="2"
-                    fill="none"
-                />
-                <Circle
-                    cx={CENTER}
-                    cy={CENTER}
-                    r={CIRCLE_RADIUS[2]}
-                    stroke="red"
-                    strokeWidth="2"
-                    fill="none"
                 />
 
-                {/* Krzyż osi */}
+                {/* Linie pomocnicze */}
                 <Line
                     x1={0}
                     y1={CENTER}
                     x2={SIZE}
                     y2={CENTER}
-                    stroke="black"
+                    stroke="#eee"
                     strokeWidth="1"
                 />
                 <Line
@@ -64,15 +44,15 @@ const AccelerometerVisualization = ({ x, y }) => {
                     y1={0}
                     x2={CENTER}
                     y2={SIZE}
-                    stroke="black"
+                    stroke="#eee"
                     strokeWidth="1"
                 />
 
-                {/* Piłka */}
+                {/* Ruchoma kropka */}
                 <Circle
-                    cx={ballX}
-                    cy={ballY}
-                    r={BALL_RADIUS}
+                    cx={CENTER + scaledX}
+                    cy={CENTER + scaledY}
+                    r={15}
                     fill="red"
                 />
             </Svg>
