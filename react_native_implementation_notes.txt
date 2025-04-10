@@ -1,0 +1,103 @@
+# Uwagi dotyczące implementacji React Native dla ErgoHealth
+
+## 1. Biblioteki WebSocket
+- Użyj `react-native-websocket-reconnect` zamiast zwykłego `react-native-websocket`
+- Konfiguracja WebSocket:
+  ```javascript
+  timeout: 10000,  // 10 sekund
+  reconnectInterval: 5000,  // 5 sekund
+  maxReconnectAttempts: 3
+  ```
+
+## 2. Obsługa stanów
+- Zaimplementuj wszystkie stany:
+  - DISCONNECTED: Brak połączenia
+  - CONNECTING: Próba połączenia
+  - CONNECTED: Połączony i odbierający dane
+  - CALIBRATING: W trakcie kalibracji
+  - ERROR: Błąd połączenia/komunikacji
+- Użyj `useReducer` do zarządzania stanem
+
+## 3. Wizualizacja
+- Użyj `react-native-reanimated` do animacji
+- Kolory wskaźnika:
+  - Zielony: angleX i angleY < 10 stopni
+  - Żółty: 10-13 stopni
+  - Czerwony: > 13 stopni
+
+## 4. Optymalizacja
+- Debounce dla aktualizacji UI (co 50ms)
+- Użyj `useMemo` dla komponentów wizualizujących
+- Użyj `useCallback` dla funkcji WebSocket
+
+## 5. Obsługa błędów
+- Walidacja JSON przed parsowaniem
+- Timeout dla połączenia
+- Obsługa utraty połączenia
+
+## 6. Konfiguracja
+- Zapamiętuj ostatni adres IP
+- Tryb AP do konfiguracji WiFi
+- Możliwość zmiany maxAngle i samplingRate
+
+## 7. Testowanie
+- Mock WebSocket do testów UI
+- Symulacja różnych kątów
+- Testy utraty połączenia
+
+## 8. UI/UX
+- Płynne przejścia między stanami
+- Wibracje przy przekroczeniu limitu
+- Obsługa obu orientacji
+
+## 9. Bezpieczeństwo
+- Walidacja danych wejściowych
+- Bezpieczne przechowywanie konfiguracji
+- Obsługa błędnego JSON
+
+## 10. Dokumentacja
+- Szczegółowe komentarze w kodzie
+- Instrukcja użytkownika
+- Przewodnik rozwiązywania problemów
+
+## 11. Komponenty do zaimplementowania
+- ConnectionStatus: Status połączenia
+- TiltIndicator: Wizualizacja nachylenia
+- SettingsPanel: Konfiguracja maxAngle i samplingRate
+- CalibrationButton: Przycisk kalibracji
+- WiFiConfig: Konfiguracja WiFi (tryb AP)
+
+## 12. Dane połączenia
+- Port WebSocket: 81
+- Tryb AP:
+  - SSID: "ErgoHealth-Config"
+  - Hasło: "12345678"
+- Port HTTP: 80
+
+## 13. Format danych
+### Dane z czujnika:
+```json
+{
+  "type": "sensorData",
+  "angleX": float,  // -15 do +15 stopni
+  "angleY": float,  // -15 do +15 stopni
+  "accX": float,    // przyspieszenie X w g
+  "accY": float,    // przyspieszenie Y w g
+  "accZ": float,    // przyspieszenie Z w g
+  "timestamp": int  // czas w milisekundach
+}
+```
+
+### Komendy:
+```json
+{
+  "command": "configure",
+  "maxAngle": float,    // 1.0 do 15.0
+  "samplingRate": int   // min. 50ms
+}
+```
+```json
+{
+  "command": "calibrate"
+}
+``` 

@@ -1,0 +1,53 @@
+RAPORT Z DZIAŁAŃ - 19.03.2024
+
+1. STAN ESP32:
+   - Działa w trybie STA (Station)
+   - Podłączone do sieci WiFi "ASUS"
+   - Stały adres IP: 192.168.2.213
+   - Nasłuchuje na porcie 81
+   - Logi z Serial Monitora potwierdzają poprawne działanie
+
+2. WPROWADZONE ZMIANY W KODZIE:
+   - Zmodyfikowano WebSocketService.js:
+     * Zwiększono timeout połączenia do 10 sekund
+     * Dodano więcej logów diagnostycznych
+     * Poprawiono obsługę błędów i stanów połączenia
+     * Dodano lepsze czyszczenie zasobów przy timeout
+   
+   - Zmodyfikowano ESP32Monitor.js:
+     * Dodano więcej logów diagnostycznych
+     * Poprawiono logikę inicjalizacji komponentu
+     * Dodano szczegółowe logi stanu połączenia
+
+3. NAPOTKANE PROBLEMY:
+   - Problemy z bundlowaniem aplikacji React Native
+   - Błąd: "JSBigFileString::fromPath - Could not open file"
+   - Aplikacja nie ładuje się poprawnie w trybie debugowania
+   - Próby uruchomienia w różnych trybach (--clear, --tunnel, --dev-client) nie rozwiązały problemu
+
+4. KROKI DO WYKONANIA JUTRO:
+   a) Opcja 1 - Naprawa bundlowania:
+      * Usunięcie node_modules i package-lock.json
+      * Reinstalacja zależności
+      * Sprawdzenie konfiguracji Metro Bundlera
+   
+   b) Opcja 2 - Nowy projekt:
+      * Stworzenie nowego projektu Expo
+      * Przeniesienie istniejącego kodu
+      * Konfiguracja od podstaw
+   
+   c) Opcja 3 - Izolacja WebSocket:
+      * Stworzenie prostego testowego komponentu
+      * Testowanie samej komunikacji WebSocket
+      * Debugowanie w izolacji od reszty aplikacji
+
+5. WAŻNE UWAGI:
+   - ESP32 działa poprawnie i jest gotowe do komunikacji
+   - Problem leży po stronie aplikacji React Native
+   - Należy zachować obecną konfigurację ESP32
+   - Warto rozważyć stworzenie prostego testu WebSocket przed powrotem do pełnej aplikacji
+
+6. PRZYDATNE LINKI I ZASOBY:
+   - Adres ESP32: ws://192.168.2.213:81
+   - Dokumentacja WebSocket w React Native
+   - Dokumentacja Expo dotycząca rozwiązywania problemów z bundlowaniem 

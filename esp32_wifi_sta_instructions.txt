@@ -1,0 +1,115 @@
+INSTRUKCJA MODYFIKACJI ESP32 NA TRYB STA (STATION)
+
+1. Modyfikacje w pliku głównym (main.cpp lub podobnym):
+
+a) Dodaj nowe zmienne globalne:
+```cpp
+// Dane WiFi
+const char* ssid = "NAZWA_TWOJEJ_SIECI";     // Zmień na nazwę swojej sieci
+const char* password = "HASLO_DO_SIECI";     // Zmień na hasło do swojej sieci
+String localIP;                              // Będzie przechowywać przydzielony adres IP
+```
+
+b) Zmodyfikuj funkcję setupWiFi():
+```cpp
+void setupWiFi() {
+    WiFi.mode(WIFI_STA);                    // Ustaw tryb Station
+    WiFi.begin(ssid, password);             // Połącz z siecią
+    
+    Serial.println("Łączenie z WiFi...");
+    while (WiFi.status() != WL_CONNECTED) {
+        delay(500);
+        Serial.print(".");
+    }
+    
+    localIP = WiFi.localIP().toString();
+    Serial.println("\nPołączono z WiFi!");
+    Serial.print("Adres IP: ");
+    Serial.println(localIP);
+}
+```
+
+c) Usuń lub zakomentuj kod związany z trybem AP:
+```cpp
+// WiFi.softAP("ErgoHealth-Config", "12345678");  // Zakomentuj tę linię
+// IPAddress IP = WiFi.softAPIP();                // Zakomentuj tę linię
+```
+
+2. Modyfikacje w kodzie WebSocket:
+
+a) Zmień adres IP w logach:
+```cpp
+Serial.print("WebSocket Server started on ws://");
+Serial.print(localIP);
+Serial.println(":81");
+```
+
+3. Dodatkowe funkcje do rozważenia:
+
+a) Zapisywanie danych WiFi do EEPROM:
+```cpp
+#include <EEPROM.h>
+
+struct WiFiConfig {
+    char ssid[32];
+    char password[64];
+};
+
+void saveWiFiConfig() {
+    WiFiConfig config;
+    strncpy(config.ssid, ssid, sizeof(config.ssid));
+    strncpy(config.password, password, sizeof(config.password));
+    
+    EEPROM.begin(512);
+    EEPROM.put(0, config);
+    EEPROM.commit();
+    EEPROM.end();
+}
+
+void loadWiFiConfig() {
+    WiFiConfig config;
+    
+    EEPROM.begin(512);
+    EEPROM.get(0, config);
+    EEPROM.end();
+    
+    ssid = config.ssid;
+    password = config.password;
+}
+```
+
+4. Zmiany w aplikacji mobilnej:
+
+a) W pliku WebSocketService.js zmień adres IP:
+```javascript
+// Zamiast stałego adresu 192.168.4.1
+const ipAddress = "ADRES_IP_ESP32";  // Użyj adresu IP z Serial Monitora
+```
+
+5. Kroki weryfikacji:
+
+a) Po wgraniu kodu na ESP32:
+- Otwórz Serial Monitor
+- Sprawdź czy ESP32 łączy się z siecią
+- Zapisz wyświetlony adres IP
+
+b) W aplikacji mobilnej:
+- Upewnij się, że telefon jest w tej samej sieci co ESP32
+- Zmień adres IP w kodzie na ten z Serial Monitora
+- Przetestuj połączenie
+
+6. Uwagi:
+- ESP32 i telefon MUSZĄ być w tej samej sieci WiFi
+- Adres IP ESP32 może się zmieniać przy każdym restarcie (chyba że skonfigurujesz DHCP)
+- Warto dodać obsługę błędów połączenia WiFi
+- Rozważ dodanie przycisku resetu do sieci WiFi
+
+7. Rozwiązywanie problemów:
+- Jeśli ESP32 nie łączy się z WiFi, sprawdź:
+  * Czy nazwa sieci i hasło są poprawne
+  * Czy sieć jest w zasięgu
+  * Czy router nie blokuje nowych urządzeń
+- Jeśli aplikacja nie łączy się z ESP32:
+  * Sprawdź czy adres IP jest poprawny
+  * Sprawdź czy port 81 jest otwarty
+  * Sprawdź czy firewall nie blokuje połączenia 

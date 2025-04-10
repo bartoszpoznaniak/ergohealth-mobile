@@ -1,0 +1,123 @@
+# Konfiguracja ESP32 dla aplikacji React Native
+
+## Dane połączenia
+- Port WebSocket: 81
+- Tryb AP (Access Point):
+  - SSID: "ErgoHealth-Config"
+  - Hasło: "12345678"
+- Port HTTP: 80 (dla strony konfiguracyjnej)
+
+## Struktura danych WebSocket
+### Typy wiadomości:
+1. "sensorData" - dane z czujnika
+   ```json
+   {
+     "type": "sensorData",
+     "angleX": float,  // kąt w stopniach (-15 do +15)
+     "angleY": float,  // kąt w stopniach (-15 do +15)
+     "accX": float,    // przyspieszenie X w g
+     "accY": float,    // przyspieszenie Y w g
+     "accZ": float,    // przyspieszenie Z w g
+     "timestamp": int  // czas w milisekundach
+   }
+   ```
+
+2. "calibration" - odpowiedź na kalibrację
+   ```json
+   {
+     "type": "calibration",
+     "status": "success"
+   }
+   ```
+
+## Komendy WebSocket
+1. Konfiguracja:
+   ```json
+   {
+     "command": "configure",
+     "maxAngle": float,    // maksymalny kąt (1.0 do 15.0)
+     "samplingRate": int   // częstotliwość próbkowania w ms (min. 50)
+   }
+   ```
+
+2. Kalibracja:
+   ```json
+   {
+     "command": "calibrate"
+   }
+   ```
+
+## Wersja oprogramowania
+- Format: "BMI270 WebSocket v1.1130.38-WS"
+- Major: 1
+- Minor: 1130
+- Patch: 38
+- Build: WS
+
+## Ważne informacje
+- Maksymalny kąt nachylenia: 15 stopni (domyślnie)
+- Częstotliwość próbkowania: 100ms (domyślnie)
+- Czujnik: BMI270
+- Protokół: WebSocket
+- Port HTTP: 80 (dla strony konfiguracyjnej)
+
+## Wskazówki dla implementacji React Native
+1. Biblioteki do rozważenia:
+   - WebSocket: `react-native-websocket` lub `react-native-websocket-reconnect`
+   - Wizualizacja: `react-native-svg` do rysowania wskaźnika
+   - Animacje: `react-native-reanimated`
+
+2. Stany aplikacji:
+   - DISCONNECTED: Brak połączenia
+   - CONNECTING: Próba połączenia
+   - CONNECTED: Połączony i odbierający dane
+   - CALIBRATING: W trakcie kalibracji
+   - ERROR: Błąd połączenia/komunikacji
+
+3. Komponenty do zaimplementowania:
+   - ConnectionStatus: Status połączenia
+   - TiltIndicator: Wizualizacja nachylenia
+   - SettingsPanel: Konfiguracja maxAngle i samplingRate
+   - CalibrationButton: Przycisk kalibracji
+   - WiFiConfig: Konfiguracja WiFi (tryb AP)
+
+4. Obsługa błędów:
+   - Timeout połączenia: 10 sekund
+   - Próba ponownego połączenia: co 5 sekund
+   - Maksymalna liczba prób: 3
+
+5. UI/UX:
+   - Kolory:
+     - Zielony: prawidłowe nachylenie
+     - Żółty: zbliżanie się do limitu
+     - Czerwony: przekroczenie limitu
+   - Animacje:
+     - Płynne przejścia między stanami
+     - Animacja kulki w wskaźniku
+   - Responsywność:
+     - Dostosowanie do różnych rozmiarów ekranu
+     - Obsługa orientacji poziomej/pionowej
+
+6. Testowanie:
+   - Symulacja danych dla różnych kątów
+   - Testowanie utraty połączenia
+   - Testowanie kalibracji
+   - Testowanie różnych częstotliwości próbkowania
+
+7. Bezpieczeństwo:
+   - Walidacja danych wejściowych
+   - Obsługa błędów JSON
+   - Timeouty połączeń
+   - Bezpieczne przechowywanie konfiguracji
+
+8. Optymalizacja:
+   - Debounce dla aktualizacji UI
+   - Memoizacja komponentów
+   - Optymalizacja renderowania wskaźnika
+   - Efektywne zarządzanie stanem WebSocket
+
+9. Dokumentacja:
+   - Komentarze w kodzie
+   - Dokumentacja komponentów
+   - Instrukcja użytkownika
+   - Troubleshooting guide 
