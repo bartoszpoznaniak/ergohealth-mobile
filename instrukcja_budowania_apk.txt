@@ -1,0 +1,148 @@
+INSTRUKCJA BUDOWANIA APLIKACJI REACT NATIVE Z WEBSOCKET
+
+1. PRZYGOTOWANIE ŚRODOWISKA
+   UWAGA: Te instalacje są globalne i wystarczy je wykonać tylko raz na komputerze:
+   - Zainstaluj Node.js (https://nodejs.org/)
+   - Zainstaluj Expo CLI: npm install -g expo-cli
+   - Zainstaluj EAS CLI: npm install -g eas-cli
+   - Zainstaluj Android Studio (jeśli chcesz testować na emulatorze)
+
+   UWAGA: Instalacje z punktu 3 są lokalne i muszą być wykonane dla każdego nowego projektu.
+
+2. UTWORZENIE NOWEGO PROJEKTU
+   npx create-expo-app nazwa-projektu
+   cd nazwa-projektu
+
+3. INSTALACJA WYMAGANYCH PAKIETÓW
+   npm install react-native-websocket
+   npm install expo-status-bar
+
+4. KONFIGURACJA PROJEKTU
+   Utwórz plik eas.json w głównym katalogu projektu:
+   {
+     "cli": {
+       "version": ">= 5.9.1"
+     },
+     "build": {
+       "preview": {
+         "android": {
+           "buildType": "apk"
+         }
+       },
+       "preview2": {
+         "android": {
+           "gradleCommand": ":app:assembleRelease"
+         }
+       },
+       "preview3": {
+         "developmentClient": true
+       },
+       "production": {}
+     }
+   }
+
+5. STRUKTURA PLIKÓW
+   nazwa-projektu/
+   ├── src/
+   │   └── components/
+   │       └── AccelerometerVisualization.js
+   ├── App.js
+   ├── eas.json
+   ├── package.json
+   └── app.json
+
+6. IMPLEMENTACJA KOMPONENTU WIZUALIZACJI
+   Utwórz plik src/components/AccelerometerVisualization.js:
+   import React from 'react';
+   import { View, StyleSheet } from 'react-native';
+
+   const AccelerometerVisualization = ({ x, y }) => {
+     return (
+       <View style={styles.container}>
+         <View style={[styles.dot, { transform: [{ translateX: x * 50 }, { translateY: y * 50 }] }]} />
+       </View>
+     );
+   };
+
+   const styles = StyleSheet.create({
+     container: {
+       width: 200,
+       height: 200,
+       backgroundColor: '#f0f0f0',
+       borderRadius: 100,
+       justifyContent: 'center',
+       alignItems: 'center',
+     },
+     dot: {
+       width: 20,
+       height: 20,
+       backgroundColor: 'blue',
+       borderRadius: 10,
+     },
+   });
+
+   export default AccelerometerVisualization;
+
+7. KONFIGURACJA APLIKACJI
+   W pliku app.json dodaj:
+   {
+     "expo": {
+       "name": "NazwaTwojejAplikacji",
+       "slug": "nazwa-twojej-aplikacji",
+       "version": "1.0.0",
+       "orientation": "portrait",
+       "icon": "./assets/icon.png",
+       "userInterfaceStyle": "light",
+       "splash": {
+         "image": "./assets/splash.png",
+         "resizeMode": "contain",
+         "backgroundColor": "#ffffff"
+       },
+       "assetBundlePatterns": [
+         "**/*"
+       ],
+       "android": {
+         "package": "com.twojanazwa.aplikacja",
+         "adaptiveIcon": {
+           "foregroundImage": "./assets/adaptive-icon.png",
+           "backgroundColor": "#ffffff"
+         }
+       }
+     }
+   }
+
+8. LOGOWANIE DO KONTA EXPO
+   eas login
+
+9. BUDOWANIE APK
+   eas build --platform android --profile preview
+
+10. TESTOWANIE APLIKACJI
+    - Po zakończeniu budowania, pobierz APK z linku podanego w konsoli
+    - Zainstaluj APK na telefonie
+    - Przy pierwszym uruchomieniu:
+      - Zaakceptuj uprawnienia sieciowe
+      - Wpisz adres IP urządzenia ESP32 w formacie: ws://IP:PORT
+      - Kliknij "Połącz"
+
+11. DEBUGOWANIE
+    - Użyj console.log() do logowania danych
+    - Sprawdź logi w konsoli Expo
+    - W przypadku błędów połączenia:
+      - Sprawdź, czy urządzenie ESP32 jest w tej samej sieci
+      - Sprawdź, czy port jest otwarty
+      - Sprawdź, czy adres IP jest poprawny
+
+12. DODATKOWE WSKAZÓWKI
+    - Zawsze testuj aplikację w trybie deweloperskim przed budowaniem APK
+    - Używaj trybu debugowania Expo do śledzenia błędów
+    - Zachowuj kopie zapasowe kodu
+    - Dokumentuj zmiany w kodzie
+
+UWAGI:
+- Ta instrukcja jest uniwersalna i może być stosowana w innych projektach React Native z WebSocket
+- Kluczowe elementy to:
+  * Prawidłowa konfiguracja uprawnień sieciowych
+  * Obsługa błędów połączenia
+  * Dynamiczna konfiguracja adresu WebSocket
+  * Prawidłowa struktura projektu 

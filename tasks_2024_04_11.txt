@@ -1,0 +1,38 @@
+ZADANIA NA 11.04.2024 - ERGOHEALTH ESP32 APP
+
+1. OPTYMALIZACJA WYDAJNOŚCI
+   - Zmniejszyć częstotliwość wysyłania danych z ESP32 (obecnie zbyt częste powoduje lags)
+   - Dodać buforowanie po stronie aplikacji React Native
+   - Zoptymalizować format danych JSON (wysyłać tylko niezbędne wartości)
+
+2. POPRAWKI WIZUALIZACJI
+   - Dodać płynniejsze przejścia animacji (interpolacja)
+   - Zwiększyć responsywność wizualizacji
+   - Dodać wskaźnik opóźnienia (latency indicator)
+
+3. FUNKCJONALNOŚĆ
+   - Dodać kalibrację akcelerometru (przycisk zerowania)
+   - Zaimplementować zapisywanie historii pomiarów
+   - Dodać wykresy trendów w czasie
+
+4. TESTY
+   - Przeprowadzić testy wydajnościowe z różnymi częstotliwościami wysyłania danych
+   - Sprawdzić stabilność połączenia przy dłuższym czasie pracy
+   - Przetestować działanie na różnych urządzeniach mobilnych
+
+5. DOKUMENTACJA
+   - Zaktualizować README.md z instrukcjami konfiguracji
+   - Dodać komentarze w kodzie
+   - Przygotować dokumentację API WebSocket
+
+PRIORYTETY:
+1. Optymalizacja wydajności (najważniejsze, bo wpływa na UX)
+2. Kalibracja akcelerometru
+3. Dokumentacja
+4. Pozostałe zadania
+
+NOTATKI:
+- Obecnie aplikacja działa, ale występują lags przy częstym wysyłaniu danych
+- Wizualizacja jest podstawowa, wymaga ulepszeń
+- Brak funkcji kalibracji i historii pomiarów
+- Dokumentacja wymaga aktualizacji 
