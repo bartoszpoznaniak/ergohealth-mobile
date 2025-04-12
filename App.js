@@ -46,25 +46,38 @@ export default function App() {
 
   const processMessage = (message) => {
     try {
-      console.log('Otrzymane dane:', message);
+      // Wykomentowane logowanie danych
+      // console.log('Otrzymane dane:', message);
       setRawData(JSON.stringify(message, null, 2));
 
       if (typeof message === 'object' && message.data) {
         try {
-          const sensorData = JSON.parse(message.data);
+          const data = JSON.parse(message.data);
 
-          if (sensorData.type === 'sensorData') {
-            console.log('Pomyślnie sparsowano dane:', sensorData);
-            const angleX = sensorData.angleX * (Math.PI / 180);
-            const angleY = sensorData.angleY * (Math.PI / 180);
+          if (data.type === 'sensorData') {
+            // Przywrócone przetwarzanie danych dla wizualizacji
+            const angleX = data.angleX * (Math.PI / 180);
+            const angleY = data.angleY * (Math.PI / 180);
 
             const normalizedX = Math.sin(angleX);
             const normalizedY = Math.sin(angleY);
 
             setX(normalizedX);
             setY(normalizedY);
-            setAccZ(sensorData.accZ);
-            setTimestamp(new Date(sensorData.timestamp).toLocaleTimeString());
+            setAccZ(data.accZ);
+            setTimestamp(new Date(data.timestamp).toLocaleTimeString());
+          } else if (data.type === 'commandResponse') {
+            console.log('Otrzymano odpowiedź na komendę:', data);
+            if (data.status === 'success') {
+              if (data.command === 'setSensitivity') {
+                setSensitivity(data.value);
+                setConnectionStatus('Czułość zaktualizowana');
+              } else if (data.command === 'reset') {
+                setConnectionStatus('Czujnik zresetowany');
+              }
+            } else {
+              setConnectionStatus(`Błąd: ${data.message}`);
+            }
           }
         } catch (innerError) {
           console.error('Błąd parsowania wewnętrznego JSON:', innerError);
@@ -100,21 +113,10 @@ export default function App() {
   };
 
   const handleSensitivityChange = (value) => {
-    try {
-      setSensitivity(value);
-
-      // Sprawdzamy czy jesteśmy połączoni i WebSocket jest gotowy
-      if (wsRef.current && isConnected && wsRef.current.readyState === WebSocket.OPEN) {
-        sendCommand({
-          type: 'setSensitivity',
-          value: value
-        });
-      } else {
-        console.warn('Nie można wysłać komendy - brak połączenia');
-      }
-    } catch (error) {
-      console.error('Błąd podczas zmiany czułości:', error);
-    }
+    sendCommand({
+      type: 'setSensitivity',
+      value: value
+    });
   };
 
   const handleSensitivityInput = (text) => {
