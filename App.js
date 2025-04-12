@@ -91,24 +91,23 @@ export default function App() {
   const sendCommand = (command) => {
     try {
       if (!wsRef.current) {
-        console.warn('WebSocket nie jest zainicjalizowany');
+        setConnectionStatus('Brak połączenia');
         return;
       }
 
       if (!isConnected) {
-        console.warn('Nie jesteś połączony z WebSocket');
+        setConnectionStatus('Brak połączenia');
         return;
       }
 
       if (wsRef.current.readyState !== WebSocket.OPEN) {
-        console.warn('WebSocket nie jest w stanie OPEN');
+        setConnectionStatus('Połączenie nieaktywne');
         return;
       }
 
       wsRef.current.send(JSON.stringify(command));
     } catch (error) {
-      console.error('Błąd podczas wysyłania komendy:', error);
-      setConnectionStatus('Błąd wysyłania');
+      setConnectionStatus('Problem z wysłaniem komendy');
     }
   };
 
@@ -162,14 +161,18 @@ export default function App() {
             onOpen={() => {
               console.log('Połączono z WebSocket');
               setConnectionStatus('Połączony');
+              setIsConnected(true);
             }}
             onError={(error) => {
               console.error('Błąd WebSocket:', error);
-              setConnectionStatus('Błąd połączenia');
+              setConnectionStatus('Błąd: Problem z połączeniem');
+              setIsConnected(false);
               handleDisconnect();
             }}
             onClose={() => {
               console.log('Rozłączono z WebSocket');
+              setConnectionStatus('Rozłączony');
+              setIsConnected(false);
               handleDisconnect();
             }}
             reconnect={true}
@@ -217,7 +220,13 @@ export default function App() {
             </Text>
           </View>
 
-          <AccelerometerVisualization x={x} y={y} />
+          <AccelerometerVisualization
+            x={x}
+            y={y}
+            isConnected={isConnected}
+            connectionStatus={connectionStatus}
+            handleConnect={handleConnect}
+          />
         </>
       )}
     </SafeAreaView>
