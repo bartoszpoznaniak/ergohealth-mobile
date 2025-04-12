@@ -10,7 +10,7 @@
 // Wersja programu
 #define VERSION_MAJOR 1
 #define VERSION_MINOR 1130
-#define VERSION_PATCH 49
+#define VERSION_PATCH 50
 
 #define VERSION_BUILD "WS" // oznaczenie że to wersja z WebSocket
 #define VERSION_STRING "BMI270 WebSocket v" STRINGIFY(VERSION_MAJOR) "." STRINGIFY(VERSION_MINOR) "." STRINGIFY(VERSION_PATCH) "-" VERSION_BUILD
@@ -73,7 +73,7 @@ struct WiFiConfig
 // Struktura konfiguracji
 struct DeviceConfig
 {
-    float maxAngle = 15.0;
+    float sensitivity = 1.0;
     int samplingRate = 100; // ms
 } config;
 
@@ -420,7 +420,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
             {
                 int newSensitivity = doc["value"];
                 Serial.printf("Nowa czułość: %d\n", newSensitivity);
-                config.maxAngle = newSensitivity;
+                config.sensitivity = newSensitivity;
                 // Wysyłanie potwierdzenia
                 DynamicJsonDocument response(200);
                 response["type"] = "commandResponse";
@@ -527,9 +527,9 @@ void loop()
         float rawAccY = imu.data.accelY;
         float rawAccZ = imu.data.accelZ;
 
-        // Obliczanie kątów
-        float angleX = atan2(rawAccX, sqrt(rawAccY * rawAccY + rawAccZ * rawAccZ)) * 180.0 / PI - offsetX;
-        float angleY = -atan2(rawAccY, sqrt(rawAccX * rawAccX + rawAccZ * rawAccZ)) * 180.0 / PI - offsetY;
+        // Obliczanie kątów z uwzględnieniem czułości
+        float angleX = (atan2(rawAccX, sqrt(rawAccY * rawAccY + rawAccZ * rawAccZ)) * 180.0 / PI - offsetX) / config.sensitivity;
+        float angleY = (-atan2(rawAccY, sqrt(rawAccX * rawAccX + rawAccZ * rawAccZ)) * 180.0 / PI - offsetY) / config.sensitivity;
 
         // Tworzenie JSON
         DynamicJsonDocument doc(200);

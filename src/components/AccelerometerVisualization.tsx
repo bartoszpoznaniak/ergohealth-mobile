@@ -15,8 +15,8 @@ interface AccelerometerVisualizationProps {
 
 const AccelerometerVisualization: React.FC<AccelerometerVisualizationProps> = ({ x, y }) => {
     // Normalizacja wartości do zakresu -1 do 1
-    const normalizedX = Math.max(-1, Math.min(1, x / 2));
-    const normalizedY = Math.max(-1, Math.min(1, y / 2));
+    const normalizedX = Math.max(-1, Math.min(1, x));
+    const normalizedY = Math.max(-1, Math.min(1, y));
 
     // Obliczenie pozycji piłki
     const ballX = CENTER + normalizedX * CENTER;
