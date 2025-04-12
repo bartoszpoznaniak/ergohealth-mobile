@@ -2,8 +2,9 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView, Text, View, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 import AccelerometerVisualization from './src/components/AccelerometerVisualization';
 import WebSocket from 'react-native-websocket';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { PermissionsAndroid, Platform } from 'react-native';
+import Slider from '@react-native-community/slider';
 
 export default function App() {
   const [x, setX] = useState(0);
@@ -14,6 +15,8 @@ export default function App() {
   const [rawData, setRawData] = useState('');
   const [wsUrl, setWsUrl] = useState('ws://192.168.2.213:81');
   const [isConnected, setIsConnected] = useState(false);
+  const [sensitivity, setSensitivity] = useState(1);
+  const wsRef = useRef(null);
 
   useEffect(() => {
     // Sprawdzamy uprawnienia sieciowe przy starcie
@@ -22,26 +25,13 @@ export default function App() {
 
   const checkNetworkPermissions = async () => {
     try {
-      // W wersji produkcyjnej Android wymaga uprawnień
+      // W Androidzie nie ma potrzeby sprawdzania uprawnień do internetu
       if (Platform.OS === 'android') {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.INTERNET,
-          {
-            title: 'Uprawnienia sieciowe',
-            message: 'Aplikacja wymaga dostępu do sieci',
-            buttonNeutral: 'Zapytaj później',
-            buttonNegative: 'Anuluj',
-            buttonPositive: 'OK',
-          },
-        );
-        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-          console.log('Przyznano uprawnienia sieciowe');
-        } else {
-          console.log('Odmówiono uprawnień sieciowych');
-        }
+        console.log('Android - dostęp do internetu jest domyślnie włączony');
+        return true;
       }
     } catch (err) {
-      console.warn(err);
+      console.warn('Błąd przy sprawdzaniu uprawnień:', err);
     }
   };
 
@@ -85,6 +75,65 @@ export default function App() {
     }
   };
 
+  const sendCommand = (command) => {
+    try {
+      if (!wsRef.current) {
+        console.warn('WebSocket nie jest zainicjalizowany');
+        return;
+      }
+
+      if (!isConnected) {
+        console.warn('Nie jesteś połączony z WebSocket');
+        return;
+      }
+
+      if (wsRef.current.readyState !== WebSocket.OPEN) {
+        console.warn('WebSocket nie jest w stanie OPEN');
+        return;
+      }
+
+      wsRef.current.send(JSON.stringify(command));
+    } catch (error) {
+      console.error('Błąd podczas wysyłania komendy:', error);
+      setConnectionStatus('Błąd wysyłania');
+    }
+  };
+
+  const handleSensitivityChange = (value) => {
+    try {
+      setSensitivity(value);
+
+      // Sprawdzamy czy jesteśmy połączoni i WebSocket jest gotowy
+      if (wsRef.current && isConnected && wsRef.current.readyState === WebSocket.OPEN) {
+        sendCommand({
+          type: 'setSensitivity',
+          value: value
+        });
+      } else {
+        console.warn('Nie można wysłać komendy - brak połączenia');
+      }
+    } catch (error) {
+      console.error('Błąd podczas zmiany czułości:', error);
+    }
+  };
+
+  const handleSensitivityInput = (text) => {
+    const value = parseInt(text);
+    if (!isNaN(value) && value >= 1 && value <= 15) {
+      setSensitivity(value);
+      sendCommand({
+        type: 'setSensitivity',
+        value: value
+      });
+    }
+  };
+
+  const handleReset = () => {
+    sendCommand({
+      type: 'reset'
+    });
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="auto" />
@@ -105,6 +154,7 @@ export default function App() {
       ) : (
         <>
           <WebSocket
+            ref={wsRef}
             url={wsUrl}
             onMessage={processMessage}
             onOpen={() => {
@@ -129,12 +179,40 @@ export default function App() {
             <Text style={styles.value}>Y (kąt): {y.toFixed(4)}</Text>
             <Text style={styles.value}>AccZ: {accZ.toFixed(4)}</Text>
             <Text style={styles.timestamp}>Czas: {timestamp}</Text>
+
+            <View style={styles.sensitivityContainer}>
+              <Text style={styles.sensitivityLabel}>Czułość:</Text>
+              <View style={styles.sensitivityControls}>
+                <Slider
+                  style={styles.slider}
+                  minimumValue={1}
+                  maximumValue={15}
+                  value={sensitivity}
+                  onValueChange={handleSensitivityChange}
+                  step={1}
+                />
+                <TextInput
+                  style={styles.sensitivityInput}
+                  value={sensitivity.toString()}
+                  onChangeText={handleSensitivityInput}
+                  keyboardType="numeric"
+                  maxLength={2}
+                />
+              </View>
+            </View>
+
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity style={[styles.button, styles.resetButton]} onPress={handleReset}>
+                <Text style={styles.buttonText}>Resetuj czujnik</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.button} onPress={handleDisconnect}>
+                <Text style={styles.buttonText}>Rozłącz</Text>
+              </TouchableOpacity>
+            </View>
+
             <Text style={[styles.status, { color: connectionStatus === 'Połączony' ? 'green' : 'red' }]}>
               Status: {connectionStatus}
             </Text>
-            <TouchableOpacity style={styles.button} onPress={handleDisconnect}>
-              <Text style={styles.buttonText}>Rozłącz</Text>
-            </TouchableOpacity>
           </View>
 
           <AccelerometerVisualization x={x} y={y} />
@@ -202,5 +280,43 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginTop: 10,
+  },
+  sensitivityContainer: {
+    marginVertical: 15,
+    width: '100%',
+  },
+  sensitivityLabel: {
+    fontSize: 16,
+    marginBottom: 5,
+    textAlign: 'center',
+  },
+  sensitivityControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  slider: {
+    flex: 1,
+    height: 40,
+    marginRight: 10,
+  },
+  sensitivityInput: {
+    width: 50,
+    height: 40,
+    borderColor: 'gray',
+    borderWidth: 1,
+    borderRadius: 5,
+    textAlign: 'center',
+    fontSize: 16,
+    padding: 5,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+  },
+  resetButton: {
+    backgroundColor: '#FF3B30',
+    marginRight: 10,
   },
 });
